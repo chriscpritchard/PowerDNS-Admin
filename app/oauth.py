@@ -104,7 +104,7 @@ def oidc_oauth():
         return redirect(url_for('.login'))
 
     @oidc.tokengetter
-    def get_github_oauth_token():
+    def get_oidc_oauth_token():
         return session.get('oidc_token')
 
     return oidc
