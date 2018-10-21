@@ -87,11 +87,11 @@ def oidc_oauth():
         'oidc',
         client_id = Setting().get('oidc_oauth_key'),
         client_secret = Setting().get('oidc_oauth_secret'),
-        request_token_params = {'scope': Setting().get('oidc_oauth_scope')},
         api_base_url = Setting().get('oidc_oauth_api_url'),
         request_token_url = None,
         access_token_url = Setting().get('oidc_oauth_token_url'),
         authorize_url = Setting().get('oidc_oauth_authorize_url'),
+        client_kwargs={'scope': Setting().get('oidc_oauth_scope')},
         fetch_token=fetch_oidc_token,
     )
 
