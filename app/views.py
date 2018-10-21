@@ -352,6 +352,31 @@ def login():
         login_user(user, remember = False)
         return redirect(url_for('index'))
 
+    if 'oidc_token' in session:
+        me = oidc.get('userinfo').data
+        oidc_username = me['sub']
+        oidc_givenname = me['given_name']
+        oidc_familyname = me['family_name']
+        oidc_email = me['email']
+
+        user = User.query.filter_by(username=oidc_username).first()
+        if not user:
+            user = User(username=oidc_username,
+                        plain_text_password=None,
+                        firstname=oidc_givenname,
+                        lastname=oidc_familyname,
+                        email=oidc_email)
+
+            result = user.create_local_user()
+            if not result['status']:
+                session.pop('oidc_token', None)
+                return redirect(url_for('login'))
+
+        session['user_id'] = user.id
+        session['authentication_type'] = 'OAuth'
+        login_user(user, remember = False)
+        return redirect(url_for('index'))
+
     if request.method == 'GET':
         return render_template('login.html', saml_enabled=SAML_ENABLED)
 
