@@ -19,7 +19,7 @@ from werkzeug import secure_filename
 from .models import User, Account, Domain, Record, Role, Server, History, Anonymous, Setting, DomainSetting, DomainTemplate, DomainTemplateRecord
 from app import app, login_manager
 from app.lib import utils
-from app.oauth import github_oauth, google_oauth
+from app.oauth import github_oauth, google_oauth, oidc_oauth
 from app.decorators import admin_role_required, operator_role_required, can_access_domain, can_configure_dnssec, can_create_domain
 
 if app.config['SAML_ENABLED']:
@@ -53,8 +53,10 @@ def inject_setting():
 def register_modules():
     global google
     global github
+    global oidc
     google = google_oauth()
     github = github_oauth()
+    oidc = oidc_oauth()
 
 
 # START USER AUTHENTICATION HANDLER
@@ -171,6 +173,15 @@ def github_login():
     else:
         return github.authorize(callback=url_for('github_authorized', _external=True))
 
+@app.route('/oidc/login')
+def oidc_login():
+    if not Setting().get('oidc_oauth_enabled') or oidc is None:
+        logging.error('OIDC OAuth is disabled or you have not yet reloaded the pda application after enabling.')
+        return abort(400)
+    else:
+        redirect_uri = url_for('oidc_authorized', _external=True)
+        return oidc.authorize_redirect(redirect_uri)
+            
 
 @app.route('/saml/login')
 def saml_login():
@@ -1507,6 +1518,15 @@ def admin_setting_authentication():
             Setting().set('github_oauth_api_url', request.form.get('github_oauth_api_url'))
             Setting().set('github_oauth_token_url', request.form.get('github_oauth_token_url'))
             Setting().set('github_oauth_authorize_url', request.form.get('github_oauth_authorize_url'))
+            result = {'status': True, 'msg': 'Saved successfully. Please reload PDA to take effect.'}
+        elif conf_type == 'oidc':
+            Setting().set('oidc_oauth_enabled', True if request.form.get('oidc_oauth_enabled') else False)
+            Setting().set('oidc_oauth_key', request.form.get('oidc_oauth_key'))
+            Setting().set('oidc_oauth_secret', request.form.get('oidc_oauth_secret'))
+            Setting().set('oidc_oauth_scope', request.form.get('oidc_oauth_scope'))
+            Setting().set('oidc_oauth_api_url', request.form.get('oidc_oauth_api_url'))
+            Setting().set('oidc_oauth_token_url', request.form.get('oidc_oauth_token_url'))
+            Setting().set('oidc_oauth_authorize_url', request.form.get('oidc_oauth_authorize_url'))
             result = {'status': True, 'msg': 'Saved successfully. Please reload PDA to take effect.'}
         else:
             return abort(400)
