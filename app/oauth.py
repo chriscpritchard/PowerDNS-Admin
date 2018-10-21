@@ -90,8 +90,6 @@ def oidc_oauth():
         access_token_url = Setting().get('oidc_oauth_token_url'),
         authorize_url = Setting().get('oidc_oauth_authorize_url'),
         fetch_token=fetch_oidc_token,
-        save_request_token=save_request_token,
-        fetch_request_token=fetch_request_token,
     )
 
     @app.route('/oidc/authorized')
@@ -105,4 +103,8 @@ def oidc_oauth():
             )
         session['oidc_token'] = (token, '')
         return redirect(url_for('.login'))
+
+    def fetch_oidc_token():
+        return session.get('oidc_token')
+
     return oidc
