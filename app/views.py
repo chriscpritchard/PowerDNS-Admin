@@ -4,6 +4,7 @@ import os
 import traceback
 import re
 import datetime
+import json
 from distutils.util import strtobool
 from distutils.version import StrictVersion
 from functools import wraps
@@ -353,11 +354,11 @@ def login():
         return redirect(url_for('index'))
 
     if 'oidc_token' in session:
-        me = oidc.get('userinfo').data
-        oidc_username = me['sub']
-        oidc_givenname = me['given_name']
-        oidc_familyname = me['family_name']
-        oidc_email = me['email']
+        me = json.loads(oidc.get('userinfo').text)
+        oidc_username = me["preferred_username"]
+        oidc_givenname = me["name"]
+        oidc_familyname = ""
+        oidc_email = me["email"]
 
         user = User.query.filter_by(username=oidc_username).first()
         if not user:

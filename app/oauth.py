@@ -104,7 +104,7 @@ def oidc_oauth():
                 request.args['error'],
                 request.args['error_description']
             )
-        session['oidc_token'] = (token, '')
+        session['oidc_token'] = (token)
         return redirect(url_for('.login'))
 
     return oidc
