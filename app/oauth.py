@@ -80,6 +80,9 @@ def oidc_oauth():
     if not Setting().get('oidc_oauth_enabled'):
         return None
 
+    def fetch_oidc_token():
+        return session.get('oidc_token')
+
     oidc = authlib_oauth_client.register(
         'oidc',
         client_id = Setting().get('oidc_oauth_key'),
@@ -103,8 +106,5 @@ def oidc_oauth():
             )
         session['oidc_token'] = (token, '')
         return redirect(url_for('.login'))
-
-    def fetch_oidc_token():
-        return session.get('oidc_token')
 
     return oidc
